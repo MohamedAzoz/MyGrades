@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Validations\User Validator\**" />
+    <EmbeddedResource Remove="Validations\User Validator\**" />
+    <None Remove="Validations\User Validator\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Validations\User Validator\Assistant\AssistantExcelDtoValidator.cs" />
+    <Compile Include="Validations\User Validator\Assistant\AssistantModelValidator.cs" />
+    <Compile Include="Validations\User Validator\RoleDtoValidator.cs" />
+    <Compile Include="Validations\User Validator\StudentExcelDtoValidator.cs" />
+    <Compile Include="Validations\User Validator\Student\StudentCreateModelValidator.cs" />
+    <Compile Include="Validations\User Validator\Student\StudentModelValidator.cs" />
+    <Compile Include="Validations\User Validator\UpdateRoleDtoValidator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DTOs\User\Doctor\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyGrades.Domain\MyGrades.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

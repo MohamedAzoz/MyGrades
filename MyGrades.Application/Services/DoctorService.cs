@@ -1,0 +1,93 @@
+﻿using AutoMapper;
+using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.AspNetCore.Identity;
+using MyGrades.Application.Contracts;
+using MyGrades.Application.Contracts.Repositories;
+using MyGrades.Application.Contracts.Services;
+using MyGrades.Domain.Entities;
+using MyGrades.Application.Helper;
+using System.IO;
+
+namespace MyGrades.Application.Services
+{
+    public class DoctorService : IDoctorService
+    {
+        private readonly IUnitOfWork _unitOfWork; // Standard naming convention with underscore
+        private readonly IMapper mapper;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly ExcelReader _excelReader;
+
+        public DoctorService(IUnitOfWork unitOfWork, IMapper _mapper
+            , UserManager<AppUser> userManager, ExcelReader excelReader)
+        {
+            _unitOfWork = unitOfWork; // Fixed naming
+            mapper = _mapper;
+            _userManager = userManager;
+            _excelReader = excelReader;
+        }
+        public async Task<Result> ImportDoctorsFromExcel(Stream stream, string defaultPassword)
+        {
+            
+            var doctorsResult = _excelReader.ReadUsersFromStream(stream);
+            if (!doctorsResult.IsSuccess)
+                return Result<bool>.Failure(doctorsResult.Message, doctorsResult.StatusCode ?? 400);
+
+            var newDoctorsData = doctorsResult.Data;
+
+            if (newDoctorsData == null
+                || newDoctorsData.Count == 0)
+            {
+                return Result<bool>.Failure("not found");
+            }
+
+            using var transaction = await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                foreach (var doctorData in newDoctorsData)
+                {
+                    // التحقق من الوجود (تجنب التكرار)
+                    var existingUser = await _userManager.FindByNameAsync(doctorData.NationalId);
+                    if (existingUser != null) continue;
+
+                    // إنشاء المستخدم
+                    AppUser newUser = mapper.Map<AppUser>(doctorData);
+
+                    // كلمة المرور هي الرقم القومي
+                    var createResult = await _userManager.CreateAsync(newUser, defaultPassword);
+
+                    if (!createResult.Succeeded)
+                    {
+                        // يمكن تجميع الأخطاء وإرجاعها، أو التوقف
+                        //createResult.Errors.First().Description;
+                        continue;
+                    }
+
+                    // إضافة دور "Doctor" للمستخدم (خطوة مهمة جداً نسيته)
+                    await _userManager.AddToRoleAsync(newUser, "Doctor");
+
+                    // إنشاء بروفايل الطبيب
+                    var newDoctorProfile = new Doctor
+                    {
+                        AppUserId = newUser.Id
+                    };
+
+                    await _unitOfWork.Doctors.AddAsync(newDoctorProfile);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                // اعتماد التغييرات
+                await transaction.CommitAsync(); // أو transaction.Commit() حسب الـ implementation
+
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex)
+            {
+                // في حالة حدوث أي خطأ، يتم التراجع عن كل شيء (حتى إنشاء المستخدمين)
+                await transaction.RollbackAsync();
+                return Result<bool>.Failure($"Import failed: {ex.Message}");
+            }
+        }
+        
+    }
+}
