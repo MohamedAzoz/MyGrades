@@ -156,15 +156,14 @@ namespace MyGrades.Application.Helper
                     foreach (var row in rows.Skip(1))
                     {
                         // 3. قراءة البيانات بمرونة (بدون شرط DataType الصارم)
-                        //int studentId = row.Cell(1).GetValue<int>();
                         int studentId = 0;
-                        if (!row.Cell(1).TryGetValue(out studentId))
+                        if (!row.Cell("F").TryGetValue(out studentId))
                         {
                             continue;
                         }
-                        double attendance = row.Cell(2).GetValue<double>();
-                        double tasks = row.Cell(3).GetValue<double>();
-                        double practical = row.Cell(4).GetValue<double>();
+                        double attendance = row.Cell("B").GetValue<double>();
+                        double tasks = row.Cell("C").GetValue<double>();
+                        double practical = row.Cell("D").GetValue<double>();
                         // تجاهل الصفوف الفارغة إن وجدت
                         if (studentId == 0 || attendance == 0 || tasks == 0 || practical == 0)
                             continue;
@@ -172,7 +171,7 @@ namespace MyGrades.Application.Helper
                         grades.Add(new GradeExcelDto
                         {
                             StudentId = studentId,
-                             Attendance = attendance,
+                            Attendance = attendance,
                             Tasks = tasks,
                             Practical = practical
                         });

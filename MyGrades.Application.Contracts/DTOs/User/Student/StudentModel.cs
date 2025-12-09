@@ -6,7 +6,7 @@
         public string? AppUserId { get; set; }
         public string? FullName { get; set; }
         public string? NationalId { get; set; }
-        public int AcademicYearId { get; set; }
+        public int AcademicLevelId { get; set; }
         public int DepartmentId { get; set; }
         //public string? EmailAddress { get; set; }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyGrades.Application.Contracts;
+using MyGrades.Application.Contracts.DTOs.User.Assistant;
 using MyGrades.Application.Contracts.Projections_Models.User.Assistants;
 using MyGrades.Application.Contracts.Repositories;
 using MyGrades.Domain.Entities;
@@ -33,6 +34,26 @@ namespace MyGrades.Infrastructure.Repositories
             }
 
             return Result<List<AssistantProjection>>.Success(assistants);
+        }
+        public async Task<Result<List<AssistantModel>>> FindAllAssistantsAsync()
+        {
+            var assistants = await context.Assistants
+                .Select(a => new AssistantModel
+                {
+                    Id = a.Id,
+                    NationalId = a.User.NationalId,
+                    FullName = a.User.FullName,
+                    DepartmentId = a.DepartmentId
+
+                })
+                .AsNoTracking()
+                .ToListAsync();
+            if (assistants == null || !assistants.Any())
+            {
+                return Result<List<AssistantModel>>.Failure("No assistants found.", 404);
+            }
+
+            return Result<List<AssistantModel>>.Success(assistants);
         }
     }
 }

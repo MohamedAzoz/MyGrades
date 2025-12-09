@@ -17,5 +17,7 @@ namespace MyGrades.Application.Contracts.Services
         public Task<Result<List<UpdateSubjectDto>>> FindAllAsync(Expression<Func<Subject, bool>> predicate);
 
         public Task<Result<List<SubjectDto>>> GetAll();
+
+        public Task<Result<List<SubjectModel>>> GetUserSubjectsAsync(Expression<Func<Subject, bool>> predicate);
     }
 }

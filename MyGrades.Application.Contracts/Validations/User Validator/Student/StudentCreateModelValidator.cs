@@ -15,8 +15,8 @@ namespace MyGrades.Application.Contracts.Validations.User_Validator.Student
                 .MaximumLength(100).WithMessage("Full name cannot exceed 100 characters.");
             RuleFor(x => x.DepartmentId)
                 .GreaterThan(0).WithMessage("Department ID must be a positive integer.");
-            RuleFor(x => x.AcademicYearId)
-                .GreaterThan(0).WithMessage("Academic Year ID must be a positive integer.");
+            RuleFor(x => x.AcademicLevelId)
+                .GreaterThan(0).WithMessage("Academic Level ID must be a positive integer.");
         }
     }
 }

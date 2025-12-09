@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Identity;
 using MyGrades.Application.Contracts;
 using MyGrades.Application.Contracts.Repositories;
 using MyGrades.Application.Contracts.Services;
 using MyGrades.Domain.Entities;
 using MyGrades.Application.Helper;
-using System.IO;
+using MyGrades.Application.Contracts.DTOs.User.Doctor;
+using MyGrades.Application.Contracts.Projections_Models.User.Doctor;
+using MyGrades.Application.Contracts.DTOs.Subject;
 
 namespace MyGrades.Application.Services
 {
@@ -25,6 +26,56 @@ namespace MyGrades.Application.Services
             _userManager = userManager;
             _excelReader = excelReader;
         }
+
+        public async Task<Result> AddDoctor(DoctorCreateModel doctorCreate)
+        {
+            var doctor = mapper.Map<Doctor>(doctorCreate);
+            await _unitOfWork.Doctors.AddAsync(doctor);
+            await _unitOfWork.SaveChangesAsync();
+            return Result.Success();
+        }
+
+        public async Task<Result> DeleteDoctor(int doctorId)
+        {
+            var doctor = await _unitOfWork.Doctors.FindAsync(x=>x.Id == doctorId);
+            if (doctor == null||doctor.Data == null)
+                return Result.Failure("Doctor not found.");
+
+            await _unitOfWork.Doctors.DeleteAsync(doctor.Data);
+            await _unitOfWork.SaveChangesAsync();
+            return Result.Success();
+        }
+
+        public async Task<Result<List<DoctorModel>>> GetAllDoctors()
+        {
+            var doctors = await _unitOfWork.Doctors.FindAllDoctorsAsync();
+            if (doctors == null || doctors.Data == null || !doctors.Data.Any())
+                return Result<List<DoctorModel>>.Failure("No doctors found.", 404);
+
+            var doctorModels = (doctors.Data);
+            return Result<List<DoctorModel>>.Success(doctorModels);
+        }
+
+        public async Task<Result<DoctorModel>> GetDoctorById(int doctorId)
+        {
+            var doctor = await _unitOfWork.Doctors.FindDoctorByIdAsync(doctorId);
+            if (doctor == null || doctor.Data == null)
+                return Result<DoctorModel>.Failure("Doctor not found.");
+
+            var doctorModel = (doctor.Data);
+            return Result<DoctorModel>.Success(doctorModel);
+        }
+
+        //public async Task<Result<List<SubjectModel>>> GetDoctorSubjectsAsync(int doctorId)
+        //{
+        //    var subjects = await _unitOfWork.Doctors.GetDoctorSubjectsAsync(doctorId);
+        //    if (subjects == null || subjects.Data == null || !subjects.Data.Any())
+        //        return Result<List<SubjectModel>>.Failure("No subjects found for this doctor.", 404);
+
+        //    var subjectModels = (subjects.Data);
+        //    return Result<List<SubjectModel>>.Success(subjectModels);
+        //}
+
         public async Task<Result> ImportDoctorsFromExcel(Stream stream, string defaultPassword)
         {
             

@@ -15,6 +15,12 @@ namespace MyGrades.API.Controllers
         {
             roleService = _roleService;
         }
+
+        /// <summary>
+        /// Adds a new role.
+        /// </summary>
+        /// <param name="roleDto">The role data transfer object.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost]
         public async Task<IActionResult> AddRole(RoleDto roleDto)
         {
@@ -30,6 +36,12 @@ namespace MyGrades.API.Controllers
             }
             return Created();
         }
+
+        /// <summary>
+        /// Deletes a role by its name.
+        /// </summary>
+        /// <param name="roleName">The role name.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpDelete("{roleName:alpha}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {
@@ -41,7 +53,13 @@ namespace MyGrades.API.Controllers
             }
             return NoContent();
         }
-        [HttpPut("UpdateRole")]
+
+        /// <summary>
+        /// Updates an existing role.
+        /// </summary>
+        /// <param name="roleDto">The role data transfer object.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpPut]
         public async Task<IActionResult> UpdateRole(UpdateRoleDto roleDto)
         {
             if (!ModelState.IsValid)
@@ -56,5 +74,8 @@ namespace MyGrades.API.Controllers
             }
             return NoContent();
         }
+
     }
+
+
 }

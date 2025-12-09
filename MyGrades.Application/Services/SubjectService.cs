@@ -116,5 +116,15 @@ namespace MyGrades.Application.Services
             return Result.Success();
 
         }
+
+        public async Task<Result<List<SubjectModel>>> GetUserSubjectsAsync(Expression<Func<Subject, bool>> predicate)
+        {
+            var subjects = await unitOfWork.Subjects.GetUserSubjectsAsync(predicate);
+            if (!subjects.IsSuccess || subjects.Data == null)
+            {
+                return Result<List<SubjectModel>>.Failure(subjects.Message);
+            }
+            return Result<List<SubjectModel>>.Success(subjects.Data);
+        }
     }
 }

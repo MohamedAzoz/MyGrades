@@ -342,10 +342,7 @@ namespace MyGrades.Infrastructure.Migrations
                         .HasPrecision(4, 2)
                         .HasColumnType("float(4)");
 
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SubjectId")
+                    b.Property<int>("StudentSubjectId")
                         .HasColumnType("int");
 
                     b.Property<double>("Tasks")
@@ -358,9 +355,7 @@ namespace MyGrades.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SubjectId");
-
-                    b.HasIndex("StudentId", "SubjectId")
+                    b.HasIndex("StudentSubjectId")
                         .IsUnique();
 
                     b.ToTable("Grades");
@@ -374,7 +369,7 @@ namespace MyGrades.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AcademicYearId")
+                    b.Property<int>("AcademicLevelId")
                         .HasColumnType("int");
 
                     b.Property<string>("AppUserId")
@@ -386,13 +381,37 @@ namespace MyGrades.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AcademicYearId");
+                    b.HasIndex("AcademicLevelId");
 
                     b.HasIndex("AppUserId");
 
                     b.HasIndex("DepartmentId");
 
                     b.ToTable("Students");
+                });
+
+            modelBuilder.Entity("MyGrades.Domain.Entities.StudentSubject", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubjectId");
+
+                    b.HasIndex("StudentId", "SubjectId")
+                        .IsUnique();
+
+                    b.ToTable("StudentSubjects");
                 });
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Subject", b =>
@@ -530,28 +549,20 @@ namespace MyGrades.Infrastructure.Migrations
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Grade", b =>
                 {
-                    b.HasOne("MyGrades.Domain.Entities.Student", "Student")
-                        .WithMany("Grades")
-                        .HasForeignKey("StudentId")
+                    b.HasOne("MyGrades.Domain.Entities.StudentSubject", "StudentSubject")
+                        .WithOne("Grade")
+                        .HasForeignKey("MyGrades.Domain.Entities.Grade", "StudentSubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("MyGrades.Domain.Entities.Subject", "Subject")
-                        .WithMany("Grades")
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Student");
-
-                    b.Navigation("Subject");
+                    b.Navigation("StudentSubject");
                 });
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Student", b =>
                 {
-                    b.HasOne("MyGrades.Domain.Entities.AcademicLevel", "AcademicYear")
+                    b.HasOne("MyGrades.Domain.Entities.AcademicLevel", "AcademicLevel")
                         .WithMany("Students")
-                        .HasForeignKey("AcademicYearId")
+                        .HasForeignKey("AcademicLevelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -566,11 +577,30 @@ namespace MyGrades.Infrastructure.Migrations
                         .HasForeignKey("DepartmentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("AcademicYear");
+                    b.Navigation("AcademicLevel");
 
                     b.Navigation("Department");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MyGrades.Domain.Entities.StudentSubject", b =>
+                {
+                    b.HasOne("MyGrades.Domain.Entities.Student", "Student")
+                        .WithMany("StudentSubjects")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyGrades.Domain.Entities.Subject", "Subject")
+                        .WithMany("StudentSubjects")
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Subject", b =>
@@ -635,12 +665,17 @@ namespace MyGrades.Infrastructure.Migrations
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Student", b =>
                 {
-                    b.Navigation("Grades");
+                    b.Navigation("StudentSubjects");
+                });
+
+            modelBuilder.Entity("MyGrades.Domain.Entities.StudentSubject", b =>
+                {
+                    b.Navigation("Grade");
                 });
 
             modelBuilder.Entity("MyGrades.Domain.Entities.Subject", b =>
                 {
-                    b.Navigation("Grades");
+                    b.Navigation("StudentSubjects");
                 });
 #pragma warning restore 612, 618
         }

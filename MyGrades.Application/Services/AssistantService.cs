@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MyGrades.Application.Contracts;
+using MyGrades.Application.Contracts.DTOs.Subject;
 using MyGrades.Application.Contracts.DTOs.User.Assistant;
 using MyGrades.Application.Contracts.Projections_Models.User.Assistants;
 using MyGrades.Application.Contracts.Repositories;
@@ -69,10 +70,21 @@ namespace MyGrades.Application.Services
 
         public async Task<Result<List<AssistantModel>>> GetAllAsync()
         {
-            var assistants = await _unitOfWork.Assistants.FindAllWithIncludeAsync(x => x.AppUserId != null, x => x.User);
-            var assistantModels = mapper.Map<List<AssistantModel>>(assistants.Data);
-            return Result<List<AssistantModel>>.Success(assistantModels);
+            var assistants = await _unitOfWork.Assistants.FindAllAssistantsAsync();
+            if (assistants == null || assistants.Data == null)
+                return Result<List<AssistantModel>>.Failure("No assistants found");
+
+            return Result<List<AssistantModel>>.Success(assistants.Data);
         }
+
+        //public async Task<Result<List<SubjectModel>>> GetAllSubjectsAsync(int assistantId)
+        //{
+        //    var subjects = await _unitOfWork.Subjects.FindAllByAssistantIdAsync(assistantId);
+        //    if (subjects == null || subjects.Data == null)
+        //        return Result<List<SubjectModel>>.Failure("No subjects found");
+
+        //    return Result<List<SubjectModel>>.Success(subjects.Data);
+        //}
 
         public async Task<Result<AssistantModel>> GetByIdAsync(int id)  
         {
@@ -185,7 +197,7 @@ namespace MyGrades.Application.Services
                         continue; // تخطي المستخدم الموجود بالفعل
                     }
 
-                    if (!existingDepartmentIds.Contains(assistantData.DepartmentId))
+                    if (existingDepartmentIds.FirstOrDefault(x=>x.Id == assistantData.DepartmentId)==null)
                     {
                         continue; // تخطي إذا كان القسم غير موجود
                     }

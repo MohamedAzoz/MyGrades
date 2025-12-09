@@ -32,27 +32,7 @@ namespace MyGrades.Application.Services
             return Result.Success();
         }
 
-        public async Task<Result<List<AcademicLevel>>> AddRangeAsync(List<AcademicLevelDto> levelList)
-        {
-            if (levelList == null || levelList.Count == 0)
-            {
-                return Result<List<AcademicLevel>>.Failure("Academic level list cannot be null or empty.", 400);
-            }
-
-            var newLevels = levelList.Select(level => new AcademicLevel
-            {
-                LevelName = level.LevelName
-            }).ToList();
-
-            var result = await unitOfWork.AcademicLevels.AddRangeAsync(newLevels);
-            if (!result.IsSuccess || result.Data == null || result.Data.Count == 0)
-            {
-                return Result<List<AcademicLevel>>.Failure("Failed to add academic levels.", result.StatusCode ?? 400);
-            }
-            await unitOfWork.SaveChangesAsync();
-            return Result<List<AcademicLevel>>.Success(result.Data.ToList());
-        }
-
+   
         public async Task<Result> ClearAsync(Expression<Func<AcademicLevel, bool>> expression)
         {
             var result = await unitOfWork.AcademicLevels.ClearAsync(expression);

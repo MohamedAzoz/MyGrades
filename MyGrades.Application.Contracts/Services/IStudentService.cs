@@ -1,4 +1,5 @@
-﻿using MyGrades.Application.Contracts.DTOs.User.Student;
+﻿using MyGrades.Application.Contracts.DTOs.Subject;
+using MyGrades.Application.Contracts.DTOs.User.Student;
 using MyGrades.Domain.Entities;
 using System.Linq.Expressions;
 using System.Xml.Linq;
@@ -7,6 +8,7 @@ namespace MyGrades.Application.Contracts.Services
 {
     public interface IStudentService
     {
+        public Task<Result<StudentGradesDto>> GetStudentGradesAsync(int studentId);
         public Task<Result<StudentModel>> GetById(int id);
         public Task<Result> Delete(int id);
         public Task<Result> Create(StudentCreateModel student);
@@ -17,6 +19,9 @@ namespace MyGrades.Application.Contracts.Services
             int departmentId);
         public Task<Result<Stream>> ExportStudentsTemplateToExcel(int departmentId);
         public Task<Result> Update(StudentModel student);
+
+        public Task<Result<List<SubjectModel>>> GetStudentSubjectsAsync(int studentId);
+
         public Task<Result> UpdateRang(List<StudentModel> students);
         public Task<Result<List<StudentModel>>> GetAll();
         public Task<Result> ClearAsync(Expression<Func<Student, bool>> expression);

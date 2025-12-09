@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MyGrades.API.Handlers;
+using MyGrades.API.Hubs;
 using MyGrades.Application.AutoMapper;
 using MyGrades.Application.Contracts.Repositories;
 using MyGrades.Application.Contracts.Services;
@@ -23,6 +24,8 @@ namespace MyGrades.API
         {
             var builder = WebApplication.CreateBuilder(args);
             // Add services to the container.
+
+            builder.Services.AddSignalR();
             // ===== ( User Handelers Folder ) ======
 
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JwtSettings"));
@@ -45,7 +48,13 @@ namespace MyGrades.API
             builder.Services.AddScoped<IGradeRepository, GradeRepository>();
             builder.Services.AddScoped<IAssistantRepository, AssistantRepository>();
             builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+            builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+            builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+            builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+            //builder.Services.AddScoped<IAcademicLevelRepository, AcademicLevelRepository>();
 
+            // ==============================================================
+            builder.Services.AddScoped<IFlashNotificationService, FlashNotificationService>();
             builder.Services.AddScoped<IGradeService, GradeService>();
             builder.Services.AddScoped<ISubjectService, SubjectService>();
             builder.Services.AddScoped<IStudentService, StudentService>();
@@ -54,6 +63,7 @@ namespace MyGrades.API
             builder.Services.AddScoped<IAuthService, AuthService>();    
             builder.Services.AddScoped<IDoctorService, DoctorService>();
             builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+            builder.Services.AddScoped<IStudentSubjectService, StudentSubjectService>();
             builder.Services.AddScoped<IRoleService, RoleService>();
             #endregion
 
@@ -178,6 +188,9 @@ namespace MyGrades.API
             //======== ( Global Handler Exception  ) ==============
 
             app.UseExceptionHandler();
+            //*********************************************************
+            //======== ( SignalR ) ==============
+            app.MapHub<NotificationHub>("/notification");
             //*********************************************************
 
             //========= ( Policy ) =============

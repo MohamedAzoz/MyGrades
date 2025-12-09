@@ -7,6 +7,7 @@ using MyGrades.Application.Contracts.Services;
 using MyGrades.Domain.Entities;
 using MyGrades.Application.Helper;
 using System.Linq.Expressions;
+using MyGrades.Application.Contracts.DTOs.Subject;
 
 namespace MyGrades.Application.Services
 {
@@ -27,7 +28,7 @@ namespace MyGrades.Application.Services
         }
 
         public async Task<Result<bool>> ImportStudentsFromExcel(Stream fileStream
-            , int academicYearId,string defaultPassword, int departmentId)
+            , int academicLevelId,string defaultPassword, int departmentId)
         {
             // 1. القراءة
             var studentsResult = _excelReader.ReadUsersFromStream(fileStream);
@@ -81,7 +82,7 @@ namespace MyGrades.Application.Services
                     {
                         AppUserId = newUser.Id,
                         DepartmentId = departmentId,
-                        AcademicYearId = academicYearId
+                        AcademicLevelId = academicLevelId
                     };
 
                     await _unitOfWork.Students.AddAsync(newStudentProfile);
@@ -139,12 +140,11 @@ namespace MyGrades.Application.Services
             var studentModel = mapper.Map<StudentModel>(existingStudent.Data);
             return Result<StudentModel>.Success(studentModel);
         }
-        
 
         public async Task<Result<List<StudentModel>>> GetAll()
         {
             var existingStudents = await _unitOfWork.Students
-                .FindAllWithIncludeAsync(x=>x.AppUserId!=null,x=>x.User,x=>x.Grades);
+                .FindAllWithIncludeAsync(x=>x.AppUserId!=null,x=>x.User!);
             if (existingStudents == null || existingStudents.Data == null)
                 return Result<List<StudentModel>>.Failure("No students found");
 
@@ -152,7 +152,6 @@ namespace MyGrades.Application.Services
             return Result<List<StudentModel>>.Success(studentModels);
         }
         
-
         public async Task<Result> Update(StudentModel student)
         {
             //var existingStudent = await _unitOfWork.Students.GetByIdAsync(student.Id);
@@ -165,7 +164,6 @@ namespace MyGrades.Application.Services
             throw new NotImplementedException();
         }
         
-
         public async Task<Result> UpdateRang(List<StudentModel> students)
         {
             //var existingStudents = await _unitOfWork.Students.GetAllAsync();
@@ -232,6 +230,24 @@ namespace MyGrades.Application.Services
 
             //await stream.CopyToAsync(outputStream);
             return Result<Stream>.Success(stream);
+        }
+
+        public async Task<Result<StudentGradesDto>> GetStudentGradesAsync(int studentId)
+        {
+            var studentGrades = await _unitOfWork.Students.GetStudentGradesAsync(studentId);
+            if (!studentGrades.IsSuccess || studentGrades.Data == null)
+                return Result<StudentGradesDto>.Failure("No grades found for the student", 404);
+
+            return Result<StudentGradesDto>.Success(studentGrades.Data);
+        }
+
+        public async Task<Result<List<SubjectModel>>> GetStudentSubjectsAsync(int studentId)
+        {
+            var subjects = await _unitOfWork.Subjects.GetStudentSubjectsAsync(studentId);
+            if (!subjects.IsSuccess || subjects.Data == null)
+                return Result<List<SubjectModel>>.Failure("No subjects found for the student", 404);
+
+            return Result<List<SubjectModel>>.Success(subjects.Data);
         }
     }
 }

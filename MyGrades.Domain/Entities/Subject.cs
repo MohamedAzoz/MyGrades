@@ -16,6 +16,9 @@
 
         public int AcademicLevelId { get; set; }
         public AcademicLevel? AcademicLevel { get; set; }
-        public ICollection<Grade>? Grades { get; set; }
+
+        public ICollection<StudentSubject>? StudentSubjects { get; set; }
+        //public ICollection<Grade>? Grades { get; set; }
     }
+
 }

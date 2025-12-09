@@ -17,18 +17,27 @@ namespace MyGrades.API.Controllers
             gradeService = _gradeService;
         }
 
-        [HttpGet("gatAll{subjectId:int}")]
+        /// <summary>
+        /// Retrieves all grades for a specific subject.
+        /// </summary>
+        /// <param name="subjectId">The subject ID.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpGet("{subjectId:int}")]
         public async Task<IActionResult> GatAll(int subjectId)
         {
             var result=await gradeService.GetAll(subjectId);
             if (! result.IsSuccess)
             {
                 return StatusCode(result.StatusCode ?? 500 ,result.Message);
-            }
-            result.Message = "Grades retrieved successfully.";
-            return Ok(result);
+            } 
+            return Ok(result.Data);
         }
 
+        /// <summary>
+        /// Deletes a grade by its ID.
+        /// </summary>
+        /// <param name="id">The grade ID.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -36,10 +45,14 @@ namespace MyGrades.API.Controllers
             if (!result.IsSuccess)
             {
                 return StatusCode(result.StatusCode ?? 500, result.Message);
-            }
-            result.Message = "Grade deleted successfully.";
-            return Ok(result);
+            } 
+            return NoContent();
         }
+
+
+
+    }
+
 
         //[HttpPost("create")]
         //public async Task<IActionResult> Create([FromBody] Grade grade)
@@ -114,7 +127,4 @@ namespace MyGrades.API.Controllers
         //    createResult.Message = "Grades updated successfully.";
         //    return Ok(createResult);
         //}
-
-
-    }
 }

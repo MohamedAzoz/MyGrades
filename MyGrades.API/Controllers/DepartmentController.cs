@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using MyGrades.Application.Contracts.DTOs.Department;
 using MyGrades.Application.Contracts.Services;
-using MyGrades.Application.Services;
 
 namespace MyGrades.API.Controllers
 {
@@ -16,6 +14,12 @@ namespace MyGrades.API.Controllers
         {
             this.departmentService = departmentService;
         }
+
+        /// <summary>
+        /// Creates a new department.
+        /// </summary>
+        /// <param name="departmentDto">The department data transfer object.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("create")]
         public async Task<IActionResult> Create(DepartmentDto departmentDto)
         {
@@ -25,10 +29,15 @@ namespace MyGrades.API.Controllers
             }
             var result = await departmentService.Create(departmentDto);
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Department created successfully.";
-            return Ok(result);
+                return StatusCode(result.StatusCode ?? 400, result.Message); 
+            return Created();
         }
+
+        /// <summary>
+        /// Creates a range of departments.
+        /// </summary>
+        /// <param name="departmentDtos">The list of department data transfer objects.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("addRange")]
         public async Task<IActionResult> CreateRange(List<DepartmentDto> departmentDtos)
         {
@@ -38,54 +47,51 @@ namespace MyGrades.API.Controllers
             }
             var result = await departmentService.CreateRang(departmentDtos);
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Departments created successfully.";
-            return Ok(result);
+                return StatusCode(result.StatusCode ?? 400, result.Message); 
+            return Created();
         }
 
-        [HttpGet("get/{id}")]
+        /// <summary>
+        /// Retrieves a department by its ID.
+        /// </summary>
+        /// <param name="id">The department ID.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
             var result = await departmentService.GetById(id);
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Department retrieved successfully.";
-            return Ok(result);
+                return StatusCode(result.StatusCode ?? 400, result.Message); 
+            return Ok(result.Data);
         }
-        [HttpGet("getall")]
+
+        /// <summary>
+        /// Retrieves all departments.
+        /// </summary>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await departmentService.GetAll();
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Departments retrieved successfully.";
-            return Ok(result);
+                return StatusCode(result.StatusCode ?? 400, result.Message); 
+            return Ok(result.Data);
         }
 
-
-        //[HttpPost("update")]
-        //public async Task<IActionResult> Update(DepartmentDto departmentDto)
-        //{
-        //if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }/
-        //    var result = await departmentService.Update(departmentDto);
-        //    if (!result.IsSuccess)
-        //        return StatusCode(result.StatusCode ?? 400, result.Message);
-        //    result.Message = "Department updated successfully.";
-        //    return Ok(result);
-        //}
-
-        [HttpDelete("delete{id:int}")]
+        /// <summary>
+        /// Deletes a department by its ID.
+        /// </summary>
+        /// <param name="id">The department ID.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await departmentService.Delete(id);
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Department deleted successfully.";
-            return Ok(result);
+                return StatusCode(result.StatusCode ?? 400, result.Message); 
+            return NoContent();
         }
 
     }
+
 }

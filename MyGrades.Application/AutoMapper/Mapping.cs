@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using MyGrades.Application.Contracts.DTOs;
 using MyGrades.Application.Contracts.DTOs.AcademicYear;
 using MyGrades.Application.Contracts.DTOs.Department;
 using MyGrades.Application.Contracts.DTOs.Grade;
@@ -55,7 +56,7 @@ namespace MyGrades.Application.AutoMapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User!.FullName))
                 .ForMember(dest => dest.NationalId, opt => opt.MapFrom(src => src.User!.NationalId))
-                .ForMember(dest => dest.AcademicYearId, opt => opt.MapFrom(src => src.AcademicYearId))
+                .ForMember(dest => dest.AcademicLevelId, opt => opt.MapFrom(src => src.AcademicLevelId))
                 .ForMember(dest => dest.AppUserId, opt => opt.MapFrom(src => src.AppUserId))
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
 
@@ -71,11 +72,11 @@ namespace MyGrades.Application.AutoMapper
             CreateMap<Student,StudentModel>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User!.FullName))
                 .ForMember(dest => dest.NationalId, opt => opt.MapFrom(src => src.User!.NationalId))
-                .ForMember(dest => dest.AcademicYearId, opt => opt.MapFrom(src => src.AcademicYearId))
+                .ForMember(dest => dest.AcademicLevelId, opt => opt.MapFrom(src => src.AcademicLevelId))
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
             
             CreateMap<StudentCreateModel, Student>()
-                .ForMember(dest => dest.AcademicYearId, opt => opt.MapFrom(src => src.AcademicYearId))
+                .ForMember(dest => dest.AcademicLevelId, opt => opt.MapFrom(src => src.AcademicLevelId))
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId));
             CreateMap<Student, UserExcelDto>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
@@ -90,6 +91,11 @@ namespace MyGrades.Application.AutoMapper
             //CreateMap< Student, GradeModel>()
             //    .ForMember(dest => dest.StudentFullName, opt => opt.MapFrom(src => src.User.FullName))
             //    .ForMember(dest => dest.StudentNationalId, opt => opt.MapFrom(src => src.User.NationalId));
+
+            CreateMap<StudentSubject, CreateStudentSubjectDto>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentId))
+                .ForMember(dest => dest.SubjectId, opt => opt.MapFrom(src => src.SubjectId))
+                .ReverseMap();
 
             #endregion
 
@@ -123,12 +129,12 @@ namespace MyGrades.Application.AutoMapper
             #endregion
 
             #region Grade Mappings
-
+            //XXXXXX______XXXXXXXXXXXXXX_______XXXXXXXXX
             CreateMap<GradeExcelDto, Grade>()
                 .ForMember(dest => dest.Practical, opt => opt.MapFrom(src => src.Practical))
                 .ForMember(dest => dest.Attendance, opt => opt.MapFrom(src => src.Attendance))
                 .ForMember(dest => dest.Tasks, opt => opt.MapFrom(src => src.Tasks))
-                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentId))
+                //.ForMember(dest => dest.StudentSubject.StudentId, opt => opt.MapFrom(src => src.StudentId))
                 .ReverseMap();
 
             //CreateMap<Grade , GradeModel>()

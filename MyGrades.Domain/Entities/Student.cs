@@ -8,9 +8,10 @@
 
         public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
-        public int AcademicYearId { get; set; }
-        public AcademicLevel? AcademicYear { get; set; }
+        public int AcademicLevelId { get; set; }
+        public AcademicLevel? AcademicLevel { get; set; }
 
-        public ICollection<Grade>? Grades { get; set; }
+        public ICollection<StudentSubject>? StudentSubjects { get; set; }
+        //public ICollection<Grade>? Grades { get; set; }
     }
 }

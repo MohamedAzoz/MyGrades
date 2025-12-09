@@ -5,6 +5,7 @@ using MyGrades.Application.Contracts.Services;
 using MyGrades.Domain.Entities;
 using MyGrades.Application.Helper;
 using MyGrades.Application.Contracts.Projections_Models.Grades;
+using MyGrades.Application.Contracts.DTOs.Grade;
 
 namespace MyGrades.Application.Services
 {
@@ -13,12 +14,15 @@ namespace MyGrades.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ExcelReader _excelReader;
+        private readonly IStudentSubjectService studentSubject;
 
-        public GradeService(IUnitOfWork unitOfWork, IMapper mapper, ExcelReader excelReader)
+        public GradeService(IUnitOfWork unitOfWork, IMapper mapper, 
+            ExcelReader excelReader,IStudentSubjectService _studentSubject)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _excelReader = excelReader;
+            studentSubject = _studentSubject;
         }
         public async Task<Result> Create(Grade grade)
         {
@@ -48,16 +52,43 @@ namespace MyGrades.Application.Services
             return Result.Success();
         }
 
+        // تصدير قالب الدرجات إلى ملف Excel
+        public async Task<Result<Stream>> ExportGradesToExcel(int subjectId)
+        {
+            var grades = await _unitOfWork.Grades.GetAllStudentsIdsAsync(subjectId);
+            if (!grades.IsSuccess || grades.Data == null)
+                return Result<Stream>.Failure(grades.Message, grades.StatusCode ?? 400);
+
+            var excelWriter = new ExcelWriter();
+            var excelStream = excelWriter.WriteGradesTemplateToStream(grades.Data);
+            excelStream.Position = 0; // Reset stream position
+
+            return Result<Stream>.Success(excelStream);
+        }
+
         public async Task<Result<List<GradeModel>>> GetAll(int subjectId)
         {
             var grades = await _unitOfWork.Grades.GetAllBySubjectIdAsync(subjectId);
             if (!grades.IsSuccess || grades.Data == null)
                 return Result<List<GradeModel>>.Failure(grades.Message, grades.StatusCode ?? 400);
 
-            var gradeModels = (grades.Data);
-            return Result<List<GradeModel>>.Success(gradeModels);
+            return Result<List<GradeModel>>.Success(grades.Data);
         }
 
+        public async Task<Result<Stream>> GetAllStudentsGrades(int subjectId)
+        {
+            var grades = await _unitOfWork.Grades.GetAllStudentsGradesAsync(subjectId);
+            if (!grades.IsSuccess || grades.Data == null)
+                return Result<Stream>.Failure(grades.Message, grades.StatusCode ?? 400);
+
+            var excelWriter = new ExcelWriter();
+            var excelStream = excelWriter.WriteGradesToStream(grades.Data);
+            excelStream.Position = 0; // Reset stream position
+
+            return Result<Stream>.Success(excelStream);
+        }
+
+        // في MyGrades.Application.Services.GradeService
         public async Task<Result<bool>> ImportGradesFromExcel(Stream fileStream, int subjectId)
         {
             var gradeResult = _excelReader.ReadGradesFromStream(fileStream);
@@ -65,56 +96,66 @@ namespace MyGrades.Application.Services
                 return Result<bool>.Failure(gradeResult.Message, gradeResult.StatusCode ?? 400);
 
             var newGradesData = gradeResult.Data;
-
-            var subjectExists = await _unitOfWork.Subjects.GetByIdAsync(subjectId);
+            var subjectExists = await _unitOfWork.StudentSubjects.FindAsync(x=>x.SubjectId==subjectId);
 
             if (!subjectExists.IsSuccess || newGradesData == null
                 || newGradesData.Count == 0 || subjectExists.Data == null)
             {
                 return Result<bool>.Failure("Subject not found");
             }
+
             using var transaction = await _unitOfWork.BeginTransactionAsync();
             try
             {
                 foreach (var gradeData in newGradesData)
                 {
-                    // 1. تحويل البيانات وتعيين SubjectId
-                    // نحن نفترض أن gradeData يحتوي على StudentId بعد تعديل الـ ExcelReader
-                    Grade gradeToProcess = _mapper.Map<Grade>(gradeData);
-                    gradeToProcess.SubjectId = subjectId;
+                    int studentId = gradeData.StudentId;
+                    var studentSubjectResult = await _unitOfWork.StudentSubjects
+                        .GetWithIncludeAsync(ss => ss.StudentId == studentId && ss.SubjectId == subjectId, ss => ss.Grade);
 
-                    // 2. حساب المجموع الكلي (TotalScore)
-                    gradeToProcess.TotalScore = gradeToProcess.Attendance +
-                                                 gradeToProcess.Tasks +
-                                                 gradeToProcess.Practical;
+                    if (!studentSubjectResult.IsSuccess || studentSubjectResult.Data == null)
+                    {
+                        // إذا لم يكن الطالب مسجلاً في هذه المادة، نتخطاه.
+                        continue;
+                    }
 
-                    // 3. البحث عن درجة موجودة لنفس الطالب في نفس المادة (للتحديث)
-                    // ملاحظة: ستحتاج لإنشاء دالة البحث هذه في GradesRepository
+                    var studentSubject = studentSubjectResult.Data;
+
+                    // 3. البحث عن درجة موجودة باستخدام StudentSubjectId
                     var existingGradeResult = await _unitOfWork.Grades
-                        .GetWithIncludeAsync(x => x.StudentId == gradeToProcess.StudentId 
-                                        && x.SubjectId == subjectId);
+                        .GetWithIncludeAsync(g => g.StudentSubjectId == studentSubject.Id);
+
+                    // 4. حساب المجموع الكلي (TotalScore)
+                    double totalScore = gradeData.Attendance + gradeData.Tasks + gradeData.Practical;
 
                     if (existingGradeResult.Data != null)
                     {
                         // إذا وُجدت الدرجة: قم بالتحديث
                         var existingGrade = existingGradeResult.Data;
-                        existingGrade.Attendance = gradeToProcess.Attendance;
-                        existingGrade.Tasks = gradeToProcess.Tasks;
-                        existingGrade.Practical = gradeToProcess.Practical;
-                        existingGrade.TotalScore = gradeToProcess.TotalScore; // تحديث المجموع
+                        existingGrade.Attendance = gradeData.Attendance;
+                        existingGrade.Tasks = gradeData.Tasks;
+                        existingGrade.Practical = gradeData.Practical;
+                        existingGrade.TotalScore = totalScore; // تحديث المجموع
 
-                        await _unitOfWork.Grades.UpdateAsync(existingGrade); // ⚠️ افترضنا وجود دالة Update
+                        await _unitOfWork.Grades.UpdateAsync(existingGrade);
                     }
                     else
                     {
                         // إذا لم توجد الدرجة: قم بالإضافة
-                        await _unitOfWork.Grades.AddAsync(gradeToProcess);
+                        var newGrade = new Grade
+                        {
+                            StudentSubjectId = studentSubject.Id,
+                            Attendance = gradeData.Attendance,
+                            Tasks = gradeData.Tasks,
+                            Practical = gradeData.Practical,
+                            TotalScore = totalScore
+                        };
+                        await _unitOfWork.Grades.AddAsync(newGrade);
                     }
                 }
 
-                // 4. الحفظ النهائي للتغييرات
+                // 5. الحفظ النهائي والتأكيد
                 await _unitOfWork.SaveChangesAsync();
-
                 await transaction.CommitAsync();
 
                 return Result<bool>.Success(true);
@@ -122,12 +163,9 @@ namespace MyGrades.Application.Services
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                // سجل الخطأ بالتفصيل في الـ Logger 
-                //_logger.LogError(ex, $"Grade import failed for subject ID {subjectId}");
                 return Result<bool>.Failure($"Import failed: {ex.Message}");
             }
         }
-        
 
         public async Task<Result<Grade>> Update(Grade grade)
         {

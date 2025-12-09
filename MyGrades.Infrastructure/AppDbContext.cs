@@ -16,6 +16,7 @@ namespace MyGrades.Infrastructure
         public DbSet<Grade> Grades { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<StudentSubject> StudentSubjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -27,11 +28,11 @@ namespace MyGrades.Infrastructure
             // =========================================================
             builder.Entity<AppUser>(entity =>
             {
-                entity.HasIndex(u => u.NationalId).IsUnique(); // منع تكرار الرقم القومي
+                entity.HasIndex(u => u.NationalId).IsUnique();
                 entity.Property(u => u.NationalId)
                       .IsRequired()
                       .HasMaxLength(14)
-                      .IsFixedLength(); // إجبار الحقل أن يكون 14 خانة بالضبط
+                      .IsFixedLength();
 
                 entity.Property(u => u.FullName)
                       .IsRequired()
@@ -40,23 +41,20 @@ namespace MyGrades.Infrastructure
 
             // =========================================================
             // 2. علاقات الـ Composition (ربط الجداول بالمستخدم) One-to-One
+            // (لا يوجد تغيير هنا)
             // ============================================================
-
-            // Student -> User
             builder.Entity<Student>()
                 .HasOne(s => s.User)
-                .WithMany() // المستخدم الواحد لا يرتبط بطلاب كثر، لكن هنا لضبط اتجاه العلاقة
+                .WithMany()
                 .HasForeignKey(s => s.AppUserId)
-                .OnDelete(DeleteBehavior.Cascade); // لو حذفنا المستخدم يُحذف ملف الطالب
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Doctor -> User
             builder.Entity<Doctor>()
                 .HasOne(d => d.User)
                 .WithMany()
                 .HasForeignKey(d => d.AppUserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Assistant -> User
             builder.Entity<Assistant>()
                 .HasOne(a => a.User)
                 .WithMany()
@@ -65,16 +63,15 @@ namespace MyGrades.Infrastructure
 
             // =========================================================
             // =============== 3. علاقات Department =====================
+            // (لا يوجد تغيير هنا)
             // =========================================================
             builder.Entity<Department>(entity =>
             {
-                // Department -> Students (One-to-Many)
                 entity.HasMany(d => d.Students)
                       .WithOne(s => s.Department)
                       .HasForeignKey(s => s.DepartmentId)
-                      .OnDelete(DeleteBehavior.Restrict); // منع حذف القسم إذا كان فيه طلاب
+                      .OnDelete(DeleteBehavior.Restrict);
 
-                // Department -> Subjects (One-to-Many)
                 entity.HasMany(d => d.Subjects)
                       .WithOne(s => s.Department)
                       .HasForeignKey(s => s.DepartmentId)
@@ -83,63 +80,79 @@ namespace MyGrades.Infrastructure
 
             // =========================================================
             // 4. علاقات Many-to-Many (Doctors <-> Departments)
+            // (لا يوجد تغيير هنا)
             // =========================================================
-            // سنترك EF Core ينشئ جدول وسيط تلقائياً (DoctorDepartment)
             builder.Entity<Doctor>()
                    .HasMany(d => d.Departments)
                    .WithMany(dep => dep.Doctors)
                    .UsingEntity(j => j.ToTable("DoctorDepartments"));
 
             // =========================================================
-            // 5. إعدادات Subject
+            // 5. إعدادات StudentSubject (جدول الربط الجديد) 🆕
+            // =========================================================
+            builder.Entity<StudentSubject>(entity =>
+            {
+                // 🚨 تحديد المفتاح الأساسي المركب (Primary Key)
+                // هذا يضمن أن الطالب لا يمكن أن يكون مسجلاً في المادة نفسها مرتين
+                entity.HasIndex(ss => new { ss.StudentId, ss.SubjectId }).IsUnique();
+
+                // العلاقة Student -> StudentSubject (One-to-Many)
+                entity.HasOne(ss => ss.Student)
+                      .WithMany(s => s.StudentSubjects)
+                      .HasForeignKey(ss => ss.StudentId)
+                      .OnDelete(DeleteBehavior.Cascade); // حذف الطالب يحذف تسجيلاته
+
+                // العلاقة Subject -> StudentSubject (One-to-Many)
+                entity.HasOne(ss => ss.Subject)
+                      .WithMany(s => s.StudentSubjects)
+                      .HasForeignKey(ss => ss.SubjectId)
+                      .OnDelete(DeleteBehavior.Restrict); // منع حذف مادة مرتبطة بتسجيلات
+            });
+
+            // =========================================================
+            // 6. إعدادات Subject
+            // (لا يوجد تغيير في علاقاتها مع Doctor/Assistant)
             // =========================================================
             builder.Entity<Subject>(entity =>
             {
-                // Subject -> Doctor (One-to-Many)
                 entity.HasOne(s => s.Doctor)
                       .WithMany(d => d.Subjects)
                       .HasForeignKey(s => s.DoctorId)
-                      .OnDelete(DeleteBehavior.Restrict); // لا تحذف المادة بحذف الدكتور
+                      .OnDelete(DeleteBehavior.Restrict);
 
-                // Subject -> Assistant (One-to-Many) - Optional
                 entity.HasOne(s => s.Assistant)
                       .WithMany(a => a.Subjects)
                       .HasForeignKey(s => s.AssistantId)
-                      .IsRequired(false) // المعيد اختياري
+                      .IsRequired(false)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                // ❌ تم حذف العلاقة القديمة (Subject -> Grades) هنا لأنها أصبحت عبر StudentSubject
             });
 
             // =========================================================
-            // 6. إعدادات Grade (الأهم)
+            // 7. إعدادات Grade (الأهم) 🚀
             // =========================================================
             builder.Entity<Grade>(entity =>
             {
-                // تحديد دقة الأرقام العشرية (Decimal Precision) لتجنب التحذيرات في EF Core
-
-                entity.Property(g => g.TotalScore)
-                      .HasPrecision(4, 2) // Total 4 digits, 2 after the decimal point
-                      .IsRequired();
-                // إذا كنت ستستخدم التفاصيل التي ذكرناها سابقاً:
+                // تحديد دقة الأرقام العشرية (Decimal Precision)
+                entity.Property(g => g.TotalScore).HasPrecision(4, 2).IsRequired();
                 entity.Property(g => g.Attendance).HasPrecision(4, 2);
                 entity.Property(g => g.Tasks).HasPrecision(4, 2);
                 entity.Property(g => g.Practical).HasPrecision(4, 2);
-                //entity.Property(g => g.FinalExam).HasPrecision(4, 2);
 
                 // ⚠️ قيد هام جداً: منع تكرار الدرجة لنفس الطالب في نفس المادة
-                entity.HasIndex(g => new { g.StudentId, g.SubjectId }).IsUnique();
+                // تم استبداله بـ StudentSubjectId
+                entity.HasIndex(g => g.StudentSubjectId).IsUnique();
 
-                // العلاقات
-                entity.HasOne(g => g.Student)
-                      .WithMany(s => s.Grades)
-                      .HasForeignKey(g => g.StudentId)
+                // تحديد العلاقة بين Grade و StudentSubject
+                entity.HasOne(g => g.StudentSubject) // تبدأ من Grade وتحدد خاصية التنقل StudentSubject
+                      .WithOne(ss => ss.Grade)       // تربطها بالخاصية التنقلية Grade الموجودة في StudentSubject
+                      .HasForeignKey<Grade>(g => g.StudentSubjectId) // تحدد المفتاح الخارجي (FK) في جدول Grade
                       .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(g => g.Subject)
-                      .WithMany(s => s.Grades)
-                      .HasForeignKey(g => g.SubjectId)
-                      .OnDelete(DeleteBehavior.Restrict); // لا تحذف درجات بحذف المادة
+                // ❌ تم حذف العلاقات القديمة (Grade -> Student) و (Grade -> Subject)
             });
         }
+
 
     }
 }

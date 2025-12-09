@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MyGrades.Application.Contracts.DTOs.User;
+using MyGrades.Application.Contracts.Services;
+using MyGrades.Domain.Entities;
 
 namespace MyGrades.API.Controllers
 {
@@ -7,51 +10,88 @@ namespace MyGrades.API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        public AuthController()
+        private readonly IAuthService authService;
+        private readonly SignInManager<AppUser> signInManager;
+
+        public AuthController(IAuthService authService, SignInManager<AppUser> signInManager)
         {
-            
+            this.authService = authService;
+            this.signInManager = signInManager;
         }
 
-        //[HttpPost("login")]
-        //public async Task<IActionResult> Login([FromBody] TokenRequestModel model)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="userLoginDto">The user login information.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login(UserLoginDto userLoginDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await authService.LoginAsync(userLoginDto);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode ?? 400, result.Message);
+            }
+            return Ok(result.Data);
+        }
 
-        //    var result = await _authService.Login(model);
+        /// <summary>
+        /// Changes the password of a user.
+        /// </summary>
+        /// <param name="changePasswordDto">The change password information.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
 
-        //    if (!result.IsAuthenticated)
-        //        return BadRequest(result.Message);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = await authService.ChangePasswordAsync(changePasswordDto);
 
-        //    if (!string.IsNullOrEmpty(result.RefreshToken))
-        //        SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode ?? 400, result.Message);
+            }
+            return Ok(result.Data);
+        }
 
-        //    return Ok(result);
-        //}
+        /// <summary>
+        /// Logs out the current user.
+        /// </summary>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpPost]
+        [Route("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await signInManager.SignOutAsync();
+            
+            return NoContent();
+        }
 
-        ///// <summary>
-        ///// Initiates the password reset process by generating a reset token and sending a reset link to the specified
-        ///// email address.
-        ///// </summary>
-        ///// <remarks>This method does not disclose whether the email address is registered in the system
-        ///// for security reasons. If the email address is registered, a password reset link is sent to the provided
-        ///// email address. The reset link includes a token and user ID, and its format depends on the client type (e.g.,
-        ///// mobile or web).</remarks>
-        ///// <param name="emailDTO">An object containing the email address of the user requesting the password reset, along with additional
-        ///// client-specific information.</param>
-        ///// <returns>An <see cref="IActionResult"/> indicating the result of the operation. Returns: <list type="bullet"> <item>
-        ///// <description><see cref="OkObjectResult"/> with a confirmation message if the email is registered or
-        ///// unregistered.</description> </item> <item> <description><see cref="BadRequestObjectResult"/> if the provided
-        ///// model state is invalid.</description> </item> </list></returns>
-        //[HttpPost("forgotPassword")]
-        //public async Task<IActionResult> ForgotPassword([FromBody] EmailDTO emailDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-        //    var result = await _authService.ForgotPassword(emailDTO);
-        //    return Ok(result.Message);
-        //}
+        /// <summary>
+        /// Deletes a user by their unique identifier.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user to delete.</param>
+        /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
+        [HttpDelete]
+        [Route("DeleteUser/{userId:guid}")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var result = await authService.DeleteUser(userId);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+            return NoContent();
+        }
+
+
     }
+
 }

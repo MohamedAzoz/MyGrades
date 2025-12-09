@@ -17,8 +17,8 @@ namespace MyGrades.Application.Contracts.Validations.User_Validator.Student
                 .NotEmpty().WithMessage("AppUserId is required.")
                 .MaximumLength(100).WithMessage("AppUserId must not exceed 100 characters.");
 
-            RuleFor(x => x.AcademicYearId)
-                .NotEmpty().WithMessage("AcademicYearId is required.")
+            RuleFor(x => x.AcademicLevelId)
+                .NotEmpty().WithMessage("AcademicLevelId is required.")
                 .WithMessage("AcademicYearId must not exceed 100 characters.");
             RuleFor(x => x.DepartmentId)
                 .NotEmpty().WithMessage("DepartmentId is required.")

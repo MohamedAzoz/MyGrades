@@ -15,15 +15,16 @@
   <ItemGroup>
     <Compile Include="Validations\User Validator\Assistant\AssistantExcelDtoValidator.cs" />
     <Compile Include="Validations\User Validator\Assistant\AssistantModelValidator.cs" />
+    <Compile Include="Validations\User Validator\ChangePasswordDtoValidator.cs" />
+    <Compile Include="Validations\User Validator\Doctor\DoctorCreateModelValidator.cs" />
     <Compile Include="Validations\User Validator\RoleDtoValidator.cs" />
     <Compile Include="Validations\User Validator\StudentExcelDtoValidator.cs" />
     <Compile Include="Validations\User Validator\Student\StudentCreateModelValidator.cs" />
+    <Compile Include="Validations\User Validator\Student\StudentGradesDtoValidator.cs" />
     <Compile Include="Validations\User Validator\Student\StudentModelValidator.cs" />
+    <Compile Include="Validations\User Validator\Student\UserExcelWriterDtoValidator.cs" />
     <Compile Include="Validations\User Validator\UpdateRoleDtoValidator.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DTOs\User\Doctor\" />
+    <Compile Include="Validations\User Validator\UserLoginDtoValidator.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +34,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MyGrades.Domain\MyGrades.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Projections Models\User\Student\" />
   </ItemGroup>
 
 </Project>

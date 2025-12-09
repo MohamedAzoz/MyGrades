@@ -8,9 +8,8 @@
         public double Practical { get; set; } 
         public double TotalScore { get; set; }
 
-        public int SubjectId { get; set; }
-        public Subject? Subject { get; set; }
-        public int StudentId { get; set; }
-        public Student? Student { get; set; }
+        public int StudentSubjectId { get; set; }
+        public StudentSubject StudentSubject { get; set; }
+
     }
 }
