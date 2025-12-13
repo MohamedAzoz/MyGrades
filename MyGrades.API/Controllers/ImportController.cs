@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MyGrades.Application.Contracts.DTOs.Imports;
 using MyGrades.Application.Contracts.Services;
 
 namespace MyGrades.API.Controllers
@@ -31,29 +32,26 @@ namespace MyGrades.API.Controllers
         /// <param name="departmentId">The department ID.</param>
         /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("students/import")]
-        public async Task<IActionResult> ImportStudents(
-             IFormFile file,
-             string defaultPassword,
-             int academicYearId,
-            int departmentId)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportStudents([FromForm] ImportStudentDto importStudent)
         {   
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if (file == null || file.Length == 0)
+            if (importStudent.File == null || importStudent.File.Length == 0)
                 return BadRequest("must attach a file.");
 
             // التحقق من الامتداد
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            var extension = Path.GetExtension(importStudent.File.FileName).ToLower();
             if (extension != ".xlsx" && extension != ".xls" && extension != ".csv")
                 return BadRequest("must be .xlsx or .xls or .csv");
 
-            using var stream = file.OpenReadStream();
-            var result = await _studentService.ImportStudentsFromExcel(stream, academicYearId, defaultPassword, departmentId);
-                if (!result.IsSuccess)
-                    return StatusCode(result.StatusCode ?? 400, result.Message); // 400 Bad Request مع رسالة الخطأ
-            
+            using var stream = importStudent.File.OpenReadStream();
+            var result = await _studentService.ImportStudentsFromExcel(stream, importStudent.AcademicYearId, importStudent.DefaultPassword, importStudent.DepartmentId);
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 400, new { Message = result.Message }); // 400 Bad Request مع رسالة الخطأ
+
             return Ok("Students imported successfully.");
         }
 
@@ -64,24 +62,25 @@ namespace MyGrades.API.Controllers
         /// <param name="defaultPassword">The default password for the imported assistants.</param>
         /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("assistants/import")]
-        public async Task<IActionResult> ImportAssistantsFromExcel(IFormFile file, string defaultPassword)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportAssistantsFromExcel([FromForm] ImportDto importDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if (file == null || file.Length == 0)
+            if (importDto.File == null || importDto.File.Length == 0)
             {
                 return BadRequest("must attach a file.");
             }
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            var extension = Path.GetExtension(importDto.File.FileName).ToLower();
             if (extension != ".xlsx" && extension != ".xls" && extension != ".csv")
                 return BadRequest("must be .xlsx or .xls or .csv");
 
-            using var stream = file.OpenReadStream();
-            var result = await _assistantService.ImportAssistantsFromExcel(stream, defaultPassword);
+            using var stream = importDto.File.OpenReadStream();
+            var result = await _assistantService.ImportAssistantsFromExcel(stream, importDto.DefaultPassword);
             if (!result.IsSuccess)
-                return StatusCode(result.StatusCode ?? 400, result.Message);
+                return StatusCode(result.StatusCode ?? 400, new { Message = result.Message });
              
             return Ok("Assistants imported successfully.");
         }
@@ -93,28 +92,27 @@ namespace MyGrades.API.Controllers
         /// <param name="defaultPassword">The default password for the imported doctors.</param>
         /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("doctors/import")]
-        public async Task<IActionResult> ImportDoctors(
-             IFormFile file,
-             string defaultPassword)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportDoctors([FromForm] ImportDto importDoctor)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if (file == null || file.Length == 0)
+            if (importDoctor.File == null || importDoctor.File.Length == 0)
                 return BadRequest("must attach a file.");
 
             // التحقق من الامتداد
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            var extension = Path.GetExtension(importDoctor.File.FileName).ToLower();
             if (extension != ".xlsx" && extension != ".xls" && extension != ".csv")
                 return BadRequest("must be .xlsx or .xls or .csv");
 
-            using var stream = file.OpenReadStream();
-            
-                var result = await _doctorService.ImportDoctorsFromExcel(stream, defaultPassword);
+            using var stream = importDoctor.File.OpenReadStream();
+
+            var result = await _doctorService.ImportDoctorsFromExcel(stream, importDoctor.DefaultPassword);
 
                 if (!result.IsSuccess)
-                    return StatusCode(result.StatusCode ?? 400, result.Message); // 400 Bad Request مع رسالة الخطأ
+                    return StatusCode(result.StatusCode ?? 400, new { Message = result.Message }); // 400 Bad Request مع رسالة الخطأ
              
             return Ok("Doctors imported successfully.");
         }
@@ -126,28 +124,27 @@ namespace MyGrades.API.Controllers
         /// <param name="subjectId">The subject ID.</param>
         /// <returns>An <see cref="IActionResult"/> containing the result of the operation.</returns>
         [HttpPost("grades/import")]
-        public async Task<IActionResult> ImportGrades(
-            IFormFile file,
-            int subjectId)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> ImportGrades([FromForm] ImportStudentGradeDto importDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-            if (file == null || file.Length == 0)
+            if (importDto.File == null || importDto.File.Length == 0)
                 return BadRequest("must attach a file.");
 
             // التحقق من الامتداد
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            var extension = Path.GetExtension(importDto.File.FileName).ToLower();
             if (extension != ".xlsx" && extension != ".xls" && extension != ".csv")
                 return BadRequest("must be .xlsx or .xls or .csv");
 
-            using var stream = file.OpenReadStream();
-            
-                var result = await gradeService.ImportGradesFromExcel(stream, subjectId);
+            using var stream = importDto.File.OpenReadStream();
+
+            var result = await gradeService.ImportGradesFromExcel(stream, importDto.SubjectId);
 
                 if (!result.IsSuccess)
-                    return StatusCode(result.StatusCode ?? 400, result.Message); // 400 Bad Request مع رسالة الخطأ
+                    return StatusCode(result.StatusCode ?? 400, new { Message = result.Message }); // 400 Bad Request مع رسالة الخطأ
              
             return Ok("Grades imported successfully.");
         }

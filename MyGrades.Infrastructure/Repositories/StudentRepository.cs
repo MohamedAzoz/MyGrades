@@ -16,6 +16,30 @@ namespace MyGrades.Infrastructure.Repositories
             this.context = context;
         }
 
+        public async Task<Result<StudentModelData>> GetByNationalIdAsync(string nationalId)
+        {
+            var student = await context.Students
+                .Where(s => s.User!.NationalId == nationalId)
+                .Select(s => new StudentModelData
+                {
+                    Id = s.Id,
+                    FullName = s.User.FullName,
+                    NationalId = s.User.NationalId,
+                    AppUserId = s.User.Id,
+                    Department = s.Department!.Name,
+                    AcademicLevel = s.AcademicLevel!.LevelName,
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (student == null)
+            {
+                return Result<StudentModelData>.Failure("Student not found");
+            }
+
+            return Result<StudentModelData>.Success(student);
+        }
+
         public async Task<Result<StudentGradesDto>> GetStudentGradesAsync(int studentId)
         {
             var student = await context.Students
@@ -44,6 +68,29 @@ namespace MyGrades.Infrastructure.Repositories
             return Result<StudentGradesDto>.Success(student);
         }
 
+        public async Task<Result<StudentModelData>> GetStudentWithDetailsAsync(int studentId)
+        {
+            var student = await context.Students
+                .Where(s => s.Id == studentId)
+                .Select(s => new StudentModelData
+                {
+                    Id = s.Id,
+                    FullName = s.User!.FullName,
+                    NationalId = s.User.NationalId,
+                    AppUserId = s.User.Id,
+                    Department = s.Department!.Name,
+                    AcademicLevel = s.AcademicLevel!.LevelName,
+                   
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
 
+            if (student == null)
+            {
+                return Result<StudentModelData>.Failure("Student not found");
+            }
+
+            return Result<StudentModelData>.Success(student);
+        }
     }
 }

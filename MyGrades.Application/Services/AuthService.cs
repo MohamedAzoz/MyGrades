@@ -36,7 +36,19 @@ namespace MyGrades.Application.Services
             this.mapper = mapper;
             this.jwt = jwt.Value;
         }
+        public async Task<Result<AppUser>> AddAdminAsync(string name, string nationalId, string Parameter)
+        {
+            var user = await userManager.FindByIdAsync(nationalId);
+            if (user != null)
+                return Result<AppUser>.Failure("User found");
+            user = new AppUser { NationalId = nationalId, UserName = nationalId, FullName = name };
+            var result = await userManager.CreateAsync(user, Parameter);
+            if (!result.Succeeded)
+                return Result<AppUser>.Failure("Failed to create user");
+            await userManager.AddToRoleAsync(user, "Admin");
 
+            return Result<AppUser>.Success(user);
+        }
 
         public async Task<Result<bool>> ChangePasswordAsync(ChangePasswordDto changePasswordDto)
         {
@@ -72,13 +84,21 @@ namespace MyGrades.Application.Services
         public async Task<Result<AuthModelDto>> LoginAsync(UserLoginDto userLoginDto)
         {
             AuthModelDto authModel = new AuthModelDto();
-            var user = await userManager.FindByNameAsync(userLoginDto.NationalId);
+            var result1 = await unitOfWork.Users.FindAsync(u=>u.NationalId==userLoginDto.NationalId);
+            if (result1==null || result1.Data==null)
+                return Result<AuthModelDto>.Failure("NationalId or password is incorrect");
+            var user = result1.Data;
+           
             var result = await userManager.CheckPasswordAsync(user, userLoginDto.Password);
             if (!result || user == null)
                 return Result<AuthModelDto>.Failure("NationalId or password is incorrect");
 
             var jwtToken = await CreateJwtToken(user);
             authModel.IsAuthenticated = true;
+            authModel.NationalId = user.NationalId;
+            authModel.UserId= user.Id;
+            authModel.FullName = user.FullName;
+            authModel.ExpiresOn = jwtToken.ValidTo;
             authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
             var roles = await userManager.GetRolesAsync(user);
             authModel.Roles = roles.ToList();

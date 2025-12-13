@@ -7,6 +7,7 @@ namespace MyGrades.Application.Contracts.Repositories
     {
         public Task<Result<List<DoctorModel>>> FindAllDoctorsAsync();
         public Task<Result<DoctorModel>> FindDoctorByIdAsync(int doctorId);
+        public Task<Result<DoctorModel>> GetDoctorByNationalIdAsync(string nationalId);
 
         //public Task<Result<List<SubjectModel>>> GetDoctorSubjectsAsync(int doctorId);
 

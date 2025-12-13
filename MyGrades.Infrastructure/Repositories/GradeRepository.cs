@@ -16,47 +16,28 @@ namespace MyGrades.Infrastructure.Repositories
             context = _context;
         }
 
-        public async Task<Result<List<GradeModel>>> GetAllAsync()
-        {
-            var grades = await context.Grades
-                .Select(g => new GradeModel
-                {
-                    Grade = g,
-                    SubjectName = g.StudentSubject.Subject.Name,
-                    StudentFullName = g.StudentSubject.Student.User!.FullName,
-                    StudentNationalId = g.StudentSubject.Student.User!.NationalId
-                })
-                .AsNoTracking()
-                .ToListAsync();
-
-            if (grades == null || grades.Count == 0)
-            {
-                return Result<List<GradeModel>>.Failure("No grades found", 404);
-            }
-
-            return Result<List<GradeModel>>.Success(grades);
-        }
-
-        public async Task<Result<List<GradeModel>>> GetAllBySubjectIdAsync(int subjectId)
+        public async Task<Result<List<GradeModelData>>> GetAllBySubjectIdAsync(int subjectId)
         {
             var grades = await context.StudentSubjects.
                 Where(x => x.Subject.Id == subjectId)
-               .Select(g => new GradeModel
+               .Select(g => new GradeModelData
                {
-                   Grade = g.Grade!,
-                   SubjectName = g.Subject.Name,
-                   StudentFullName = g.Student.User!.FullName,
-                   StudentNationalId = g.Student.User!.NationalId
+                   Id = g.Grade!.Id,
+                   Attendance = g.Grade.Attendance,
+                   Tasks = g.Grade.Tasks,
+                   Practical = g.Grade.Practical,
+                   TotalScore = g.Grade.TotalScore,
+                   StudentFullName = g.Student.User!.FullName
                })
                .AsNoTracking()
                .ToListAsync();
 
             if (grades == null || grades.Count == 0)
             {
-                return Result<List<GradeModel>>.Failure("No grades found", 404);
+                return Result<List<GradeModelData>>.Failure("No grades found", 404);
             }
 
-            return Result<List<GradeModel>>.Success(grades);
+            return Result<List<GradeModelData>>.Success(grades);
         }
 
         public async Task<Result<List<GradeExcelWriterDto>>> GetAllStudentsGradesAsync(int subjectId)

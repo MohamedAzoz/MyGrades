@@ -131,14 +131,14 @@ namespace MyGrades.Application.Services
             return Result.Success();
         }
 
-        public async Task<Result<StudentModel>> GetById(int id)
+        public async Task<Result<StudentModelData>> GetById(int id)
         {
-            var existingStudent = await _unitOfWork.Students.GetByIdAsync(id);
+            var existingStudent = await _unitOfWork.Students.GetStudentWithDetailsAsync(id);
             if (existingStudent == null || existingStudent.Data == null)
-                return Result<StudentModel>.Failure("Student not found");
+                return Result<StudentModelData>.Failure("Student not found");
 
-            var studentModel = mapper.Map<StudentModel>(existingStudent.Data);
-            return Result<StudentModel>.Success(studentModel);
+            var studentModel = existingStudent.Data;
+            return Result<StudentModelData>.Success(studentModel);
         }
 
         public async Task<Result<List<StudentModel>>> GetAll()
@@ -184,14 +184,14 @@ namespace MyGrades.Application.Services
             throw new NotImplementedException();
         }
 
-        public async Task<Result<StudentModel>> Find(Expression<Func<Student, bool>> expression, params Expression<Func<Student, object>>[] includes)
+        public async Task<Result<StudentModelData>> GetByNationalIdAsync(string nationalId)
         {
-            var student = await _unitOfWork.Students.FindAsync(expression, includes);
+            var student = await _unitOfWork.Students.GetByNationalIdAsync(nationalId);
             if (!student.IsSuccess || student == null || student.Data == null)
-                return Result<StudentModel>.Failure("Student not found");
+                return Result<StudentModelData>.Failure("Student not found");
 
-            var studentModel = mapper.Map<StudentModel>(student.Data);
-            return Result<StudentModel>.Success(studentModel);
+            var studentModel = student.Data;
+            return Result<StudentModelData>.Success(studentModel);
         }
 
         public async Task<Result<List<StudentModel>>> FindAll(Expression<Func<Student, bool>> expression, params Expression<Func<Student, object>>[] includes)

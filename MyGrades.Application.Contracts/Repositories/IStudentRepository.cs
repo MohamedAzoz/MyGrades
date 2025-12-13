@@ -6,5 +6,7 @@ namespace MyGrades.Application.Contracts.Repositories
     public interface IStudentRepository : IGenericRepository<Student>
     {
         Task<Result<StudentGradesDto>> GetStudentGradesAsync(int studentId);
+        Task<Result<StudentModelData>> GetStudentWithDetailsAsync(int studentId);
+        Task <Result<StudentModelData>> GetByNationalIdAsync(string nationalId);
     }
 }

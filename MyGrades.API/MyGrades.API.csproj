@@ -22,4 +22,8 @@
     <ProjectReference Include="..\MyGrades.Infrastructure\MyGrades.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

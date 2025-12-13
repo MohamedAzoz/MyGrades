@@ -62,6 +62,25 @@ namespace MyGrades.API.Controllers
             return Created();
         }
 
+        // GetDoctor
+        [HttpGet("ByNationalId/{nationalId:long}")]
+        public async Task<IActionResult> GetDoctorByNationalId(long nationalId)
+        {
+            var result = await _doctorService.GetDoctorByNationalId(nationalId.ToString());
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 400, result.Message);
+            return Ok(result.Data);
+        }
+        // GetDoctorSubjectsAsync by doctor id
+        //[HttpGet("{doctorId:int}/subjects")]
+        //public async Task<IActionResult> GetDoctorSubjectsAsync(int doctorId)
+        //{
+        //    var result = await _subjectService.GetUserSubjectsAsync(s => s.DoctorId == doctorId);
+        //    if (!result.IsSuccess)
+        //        return StatusCode(result.StatusCode ?? 400, result.Message);
+        //    return Ok(result.Data);
+        //}
+
         /// <summary>
         /// Deletes a doctor by its ID.
         /// </summary>

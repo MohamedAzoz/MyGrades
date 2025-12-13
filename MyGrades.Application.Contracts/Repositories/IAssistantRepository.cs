@@ -9,5 +9,7 @@ namespace MyGrades.Application.Contracts.Repositories
         public Task<Result<List<AssistantProjection>>> FindAllByDepartmentIdAsync(int departmentId);
 
         public Task<Result<List<AssistantModel>>> FindAllAssistantsAsync();
+        public Task<Result<AssistantModelData>> GetAssistantByIdAsync(int id);
+        public Task<Result<AssistantModelData>> GetByNationalIdAsync(string nationalId);
     }
 }

@@ -83,7 +83,7 @@ namespace MyGrades.API.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetStudentById(int id)
         {
-            var result = await studentService.Find(x=>x.Id==id , x => x.User);
+            var result = await studentService.GetById(id);
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode ?? 400, result.Message);
             return Ok(result.Data);
@@ -97,7 +97,11 @@ namespace MyGrades.API.Controllers
         [HttpGet("byNationalId/{nationalId:long}")]
         public async Task<IActionResult> GetStudentByNationalId(long nationalId)
         {
-            var result = await studentService.Find(x=>x.User.NationalId==nationalId.ToString(), x => x.User);
+            if (nationalId <= 0 || nationalId.ToString().Length != 14)
+            {
+                return BadRequest("Invalid National ID.");
+            }
+            var result = await studentService.GetByNationalIdAsync(nationalId.ToString());
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode ?? 400, result.Message);
             return Ok(result.Data);

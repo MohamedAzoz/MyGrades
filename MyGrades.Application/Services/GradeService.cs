@@ -66,13 +66,13 @@ namespace MyGrades.Application.Services
             return Result<Stream>.Success(excelStream);
         }
 
-        public async Task<Result<List<GradeModel>>> GetAll(int subjectId)
+        public async Task<Result<List<GradeModelData>>> GetAll(int subjectId)
         {
             var grades = await _unitOfWork.Grades.GetAllBySubjectIdAsync(subjectId);
             if (!grades.IsSuccess || grades.Data == null)
-                return Result<List<GradeModel>>.Failure(grades.Message, grades.StatusCode ?? 400);
+                return Result<List<GradeModelData>>.Failure(grades.Message, grades.StatusCode ?? 400);
 
-            return Result<List<GradeModel>>.Success(grades.Data);
+            return Result<List<GradeModelData>>.Success(grades.Data);
         }
 
         public async Task<Result<Stream>> GetAllStudentsGrades(int subjectId)

@@ -19,6 +19,17 @@ namespace MyGrades.API.Controllers
             this.signInManager = signInManager;
         }
 
+        [HttpPost("AddAdmin")]
+        public async Task<IActionResult> AddAdmin(string name,string nationalId, string Parameter)
+        {
+            var result = await authService.AddAdminAsync(name,nationalId, Parameter);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok(result.Data);
+        }
+
         /// <summary>
         /// Logs in a user.
         /// </summary>

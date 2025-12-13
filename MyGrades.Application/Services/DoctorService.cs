@@ -66,15 +66,16 @@ namespace MyGrades.Application.Services
             return Result<DoctorModel>.Success(doctorModel);
         }
 
-        //public async Task<Result<List<SubjectModel>>> GetDoctorSubjectsAsync(int doctorId)
-        //{
-        //    var subjects = await _unitOfWork.Doctors.GetDoctorSubjectsAsync(doctorId);
-        //    if (subjects == null || subjects.Data == null || !subjects.Data.Any())
-        //        return Result<List<SubjectModel>>.Failure("No subjects found for this doctor.", 404);
+        public async Task<Result<DoctorModel>> GetDoctorByNationalId(string nationalId)
+        {
+            var doctor = await _unitOfWork.Doctors.GetDoctorByNationalIdAsync(nationalId);
+            if (doctor == null || doctor.Data == null)
+                return Result<DoctorModel>.Failure("Doctor not found.");
 
-        //    var subjectModels = (subjects.Data);
-        //    return Result<List<SubjectModel>>.Success(subjectModels);
-        //}
+            var doctorModel = (doctor.Data);
+            return Result<DoctorModel>.Success(doctorModel);
+        }
+
 
         public async Task<Result> ImportDoctorsFromExcel(Stream stream, string defaultPassword)
         {

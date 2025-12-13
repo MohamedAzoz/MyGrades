@@ -59,6 +59,15 @@ namespace MyGrades.Application.Services
             return Result.Success();
         }
 
+        public async Task<Result<AssistantModelData>> GetByNationalIdAsync(string nationalId)
+        {
+            var assistant = await _unitOfWork.Assistants.GetByNationalIdAsync(nationalId);
+            if (assistant == null || assistant.Data == null)
+                return Result<AssistantModelData>.Failure("Assistant not found");
+            var assistantModel = mapper.Map<AssistantModelData>(assistant.Data);
+            return Result<AssistantModelData>.Success(assistantModel);
+        }
+
         public async Task<Result<List<AssistantProjection>>> FindAllAsync(int departmentId)
         {
             var result = await _unitOfWork.Assistants.FindAllByDepartmentIdAsync(departmentId);
@@ -86,14 +95,14 @@ namespace MyGrades.Application.Services
         //    return Result<List<SubjectModel>>.Success(subjects.Data);
         //}
 
-        public async Task<Result<AssistantModel>> GetByIdAsync(int id)  
+        public async Task<Result<AssistantModelData>> GetByIdAsync(int id)  
         {
-            var assistant = await _unitOfWork.Assistants.GetByIdAsync(id);
+            var assistant = await _unitOfWork.Assistants.GetAssistantByIdAsync(id);
             if (assistant == null)
-                return Result<AssistantModel>.Failure("Assistant not found");
+                return Result<AssistantModelData>.Failure("Assistant not found");
 
-            var assistantModel = mapper.Map<AssistantModel>(assistant.Data);
-            return Result<AssistantModel>.Success(assistantModel);
+            //var assistantModel = mapper.Map<AssistantModel>(assistant.Data);
+            return Result<AssistantModelData>.Success(assistant.Data);
         }
 
         //public async Task<Result<bool>> ImportAssistantsFromExcel(Stream fileStream, string defaultPassword)

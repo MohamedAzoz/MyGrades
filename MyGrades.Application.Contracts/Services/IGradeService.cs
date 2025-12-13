@@ -14,7 +14,7 @@ namespace MyGrades.Application.Contracts.Services
         public Task<Result<Stream>> ExportGradesToExcel(int subjectId);
         public Task<Result<List<Grade>>> UpdateRang(List<Grade> grades);
         
-        public Task<Result<List<GradeModel>>> GetAll(int subjectId);
+        public Task<Result<List<GradeModelData>>> GetAll(int subjectId);
 
         public Task<Result<Stream>> GetAllStudentsGrades(int subjectId);
         

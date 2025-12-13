@@ -9,10 +9,10 @@ namespace MyGrades.Application.Contracts.Services
     public interface IStudentService
     {
         public Task<Result<StudentGradesDto>> GetStudentGradesAsync(int studentId);
-        public Task<Result<StudentModel>> GetById(int id);
+        public Task<Result<StudentModelData>> GetById(int id);
         public Task<Result> Delete(int id);
         public Task<Result> Create(StudentCreateModel student);
-        public Task<Result<StudentModel>> Find(Expression<Func<Student, bool>> expression, params Expression<Func<Student, object>>[] includes);
+        public Task<Result<StudentModelData>> GetByNationalIdAsync(string nationalId);
         public Task<Result<List<StudentModel>>> FindAll(Expression<Func<Student, bool>> expression, params Expression<Func<Student, object>>[] includes);
         public Task<Result> CreateRang(List<StudentCreateModel> students);
         public Task<Result<bool>> ImportStudentsFromExcel(Stream fileStream, int academicYearId, string defaultPassword,

@@ -59,6 +59,28 @@ namespace MyGrades.Infrastructure.Repositories
             return Result<DoctorModel>.Success(doctor);
         }
 
+        public async Task<Result<DoctorModel>> GetDoctorByNationalIdAsync(string nationalId)
+        {
+            var doctor = await _context.Doctors
+                .Where(d => d.User.NationalId == nationalId)
+                .Select(d => new DoctorModel
+                {
+                    Id = d.Id,
+                    AppUserId = d.AppUserId,
+                    FullName = d.User.FullName,
+                    NationalId = d.User.NationalId
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (doctor == null)
+            {
+                return Result<DoctorModel>.Failure("Doctor not found.", 404);
+            }
+
+            return Result<DoctorModel>.Success(doctor);
+        }
+
         //public async Task<Result<List<SubjectModel>>> GetDoctorSubjectsAsync(int doctorId)
         //{
         //    var subjects = await _context.Subjects
@@ -78,8 +100,8 @@ namespace MyGrades.Infrastructure.Repositories
 
         //    return Result<List<SubjectModel>>.Success(subjects);
         //}
-    
-    
+
+
     }
 }
 

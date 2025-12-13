@@ -55,5 +55,49 @@ namespace MyGrades.Infrastructure.Repositories
 
             return Result<List<AssistantModel>>.Success(assistants);
         }
+
+        public async Task<Result<AssistantModelData>> GetAssistantByIdAsync(int id)
+        {
+            var assistant = await context.Assistants
+                .Where(a => a.Id == id)
+                .Select(a => new AssistantModelData
+                {
+                    Id = a.Id,
+                    NationalId = a.User.NationalId,
+                    FullName = a.User.FullName,
+                    Department = a.Department.Name
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (assistant == null)
+            {
+                return Result<AssistantModelData>.Failure("Assistant not found.", 404);
+            }
+
+            return Result<AssistantModelData>.Success(assistant);
+        }
+
+        public async Task<Result<AssistantModelData>> GetByNationalIdAsync(string nationalId)
+        {
+            var assistant = await context.Assistants
+                .Where(a => a.User.NationalId == nationalId)
+                .Select(a => new AssistantModelData
+                {
+                    Id = a.Id,
+                    NationalId = a.User.NationalId,
+                    FullName = a.User.FullName,
+                    Department = a.Department.Name
+                })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (assistant == null)
+            {
+                return Result<AssistantModelData>.Failure("Assistant not found.", 404);
+            }
+
+            return Result<AssistantModelData>.Success(assistant);
+        }
     }
 }

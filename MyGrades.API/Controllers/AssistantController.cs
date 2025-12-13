@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyGrades.Application.Contracts.DTOs.User.Assistant;
 using MyGrades.Application.Contracts.Services;
+using MyGrades.Application.Services;
 
 namespace MyGrades.API.Controllers
 {
@@ -30,6 +31,20 @@ namespace MyGrades.API.Controllers
             return Ok(result.Data);
         }
 
+        [HttpGet("byNationalId/{nationalId:long}")]
+        public async Task<IActionResult> GetAssistantByNationalId(long nationalId)
+        {
+            if (nationalId <= 0 || nationalId.ToString().Length != 14)
+            {
+                return BadRequest("Invalid national ID.");
+            }
+            var result = await assistantService.GetByNationalIdAsync(nationalId.ToString());
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode ?? 400, result.Message);
+            return Ok(result.Data);
+        }
+
+
         /// <summary>
         /// Retrieves an assistant by their unique identifier.
         /// </summary>
@@ -41,8 +56,8 @@ namespace MyGrades.API.Controllers
             var result = await assistantService.GetByIdAsync(id);
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode ?? 400, result.Message);
-            result.Message = "Assistant retrieved successfully.";
-            return Ok(result);
+            //result.Message = "Assistant retrieved successfully.";
+            return Ok(result.Data);
         }
 
         /// <summary>

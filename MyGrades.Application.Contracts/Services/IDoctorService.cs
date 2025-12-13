@@ -9,6 +9,7 @@ namespace MyGrades.Application.Contracts.Services
         Task<Result> AddDoctor(DoctorCreateModel doctorCreate);
         Task<Result<List<DoctorModel>>> GetAllDoctors();
         Task<Result<DoctorModel>> GetDoctorById(int doctorId);
+        Task<Result<DoctorModel>> GetDoctorByNationalId(string nationalId);
         //Task<Result> UpdateDoctor(Guid doctorId, DoctorUpdateModel doctorUpdate);
         //Task<Result<List<SubjectModel>>> GetDoctorSubjectsAsync(int doctorId);
 
