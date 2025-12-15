@@ -1,17 +1,14 @@
 ﻿using AutoMapper;
-using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MyGrades.Application.Contracts.Const;
 using MyGrades.Application.Contracts;
-using MyGrades.Application.Contracts.DTOs.Subject;
 using MyGrades.Application.Contracts.DTOs.User.Assistant;
 using MyGrades.Application.Contracts.Projections_Models.User.Assistants;
 using MyGrades.Application.Contracts.Repositories;
 using MyGrades.Application.Contracts.Services;
 using MyGrades.Application.Helper;
 using MyGrades.Domain.Entities;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace MyGrades.Application.Services
 {
@@ -20,10 +17,10 @@ namespace MyGrades.Application.Services
         private readonly IUnitOfWork _unitOfWork; // Standard naming convention with underscore
         private readonly IMapper mapper;
         private readonly UserManager<AppUser> _userManager;
-        private readonly ExcelReader _excelReader;
+        private readonly IExcelReader _excelReader;
 
         public AssistantService(IUnitOfWork unitOfWork, IMapper _mapper
-            , UserManager<AppUser> userManager, ExcelReader excelReader)
+            , UserManager<AppUser> userManager, IExcelReader excelReader)
         {
             _unitOfWork = unitOfWork; // Fixed naming
             mapper = _mapper;
@@ -177,16 +174,11 @@ namespace MyGrades.Application.Services
                 return Result<bool>.Failure(assistantsResult.Message, assistantsResult.StatusCode ?? 400);
 
             var newAssistantsData = assistantsResult.Data;
-
-            // *** التحسين 1: جلب كل الأقسام الموجودة مسبقاً مرة واحدة ***
+             
             var existingDepartmentIds = (await _unitOfWork.Departments.getAllIdsAsync())
                                             .Data
                                             .ToHashSet();
-
-            // *** التحسين 2: جلب جميع أرقام الهويات الوطنية الموجودة مسبقاً مرة واحدة ***
-            // نفترض أن NationalId مخزن في AppUser في حقل معين يمكن البحث فيه بكفاءة
-            // قد تحتاج إلى استخدام UserManager أو Query مباشر
-            // كمثال (افترض أن لديك طريقة للحصول على كل الـ NationalIds الموجودة):
+             
             var existingNationalIds = (await _userManager.Users.Select(u => u.UserName).ToListAsync())
                                         .ToHashSet();
 
@@ -225,7 +217,7 @@ namespace MyGrades.Application.Services
                     }
 
                     // إضافة دور "Assistant" (لا يمكن تجنبه، هو استدعاء DB آخر)
-                    await _userManager.AddToRoleAsync(newUser, "Assistant");
+                    await _userManager.AddToRoleAsync(newUser, UserRoles.Assistant);
 
                     // أضف ملف التعريف إلى القائمة بدلاً من إضافته إلى الـ UnitOfWork مباشرة
                     newAssistantProfiles.Add(new Assistant

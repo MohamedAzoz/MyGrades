@@ -13,15 +13,17 @@ namespace MyGrades.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ExcelReader _excelReader;
+        private readonly IExcelReader _excelReader;
+        private readonly IExcelWriter excelWriter;
         private readonly IStudentSubjectService studentSubject;
 
         public GradeService(IUnitOfWork unitOfWork, IMapper mapper, 
-            ExcelReader excelReader,IStudentSubjectService _studentSubject)
+            IExcelReader excelReader ,IExcelWriter _excelWriter,IStudentSubjectService _studentSubject)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _excelReader = excelReader;
+            excelWriter = _excelWriter;
             studentSubject = _studentSubject;
         }
         public async Task<Result> Create(Grade grade)
@@ -58,8 +60,7 @@ namespace MyGrades.Application.Services
             var grades = await _unitOfWork.Grades.GetAllStudentsIdsAsync(subjectId);
             if (!grades.IsSuccess || grades.Data == null)
                 return Result<Stream>.Failure(grades.Message, grades.StatusCode ?? 400);
-
-            var excelWriter = new ExcelWriter();
+             
             var excelStream = excelWriter.WriteGradesTemplateToStream(grades.Data);
             excelStream.Position = 0; // Reset stream position
 
@@ -80,8 +81,7 @@ namespace MyGrades.Application.Services
             var grades = await _unitOfWork.Grades.GetAllStudentsGradesAsync(subjectId);
             if (!grades.IsSuccess || grades.Data == null)
                 return Result<Stream>.Failure(grades.Message, grades.StatusCode ?? 400);
-
-            var excelWriter = new ExcelWriter();
+             
             var excelStream = excelWriter.WriteGradesToStream(grades.Data);
             excelStream.Position = 0; // Reset stream position
 

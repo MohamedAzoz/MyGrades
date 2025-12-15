@@ -36,16 +36,75 @@ namespace MyGrades.Application.Services
             this.mapper = mapper;
             this.jwt = jwt.Value;
         }
-        public async Task<Result<AppUser>> AddAdminAsync(string name, string nationalId, string Parameter)
+        public async Task<Result<AppUser>> AddAdminAsync(AdminDto adminDto)
         {
-            var user = await userManager.FindByIdAsync(nationalId);
+            var user = await userManager.FindByIdAsync(adminDto.NationalId);
             if (user != null)
+            {
                 return Result<AppUser>.Failure("User found");
-            user = new AppUser { NationalId = nationalId, UserName = nationalId, FullName = name };
-            var result = await userManager.CreateAsync(user, Parameter);
+            }
+            user = new AppUser { NationalId = adminDto.NationalId, UserName = adminDto.NationalId, FullName = adminDto.FullName };
+            var result = await userManager.CreateAsync(user, adminDto.Password);
             if (!result.Succeeded)
+            {
                 return Result<AppUser>.Failure("Failed to create user");
+            }
             await userManager.AddToRoleAsync(user, "Admin");
+
+            return Result<AppUser>.Success(user);
+        }
+
+        public async Task<Result<AppUser>> AddAssistantAsync(AdminDto adminDto)
+        {
+            var user = await userManager.FindByIdAsync(adminDto.NationalId);
+            if (user != null)
+            {
+                return Result<AppUser>.Failure("User found");
+            }
+            user = new AppUser { NationalId = adminDto.NationalId, UserName = adminDto.NationalId, FullName = adminDto.FullName };
+            var result = await userManager.CreateAsync(user, adminDto.Password);
+            if (!result.Succeeded)
+            {
+                return Result<AppUser>.Failure("Failed to create user");
+            }
+            await userManager.AddToRoleAsync(user, "Assistant");
+
+            return Result<AppUser>.Success(user);
+        }
+
+        public async Task<Result<AppUser>> AddDoctorAsync(AdminDto adminDto)
+        {
+            var user = await userManager.FindByIdAsync(adminDto.NationalId);
+            if (user != null)
+            {
+                return Result<AppUser>.Failure("User found");
+            }
+            user = new AppUser { NationalId = adminDto.NationalId, UserName = adminDto.NationalId, FullName = adminDto.FullName };
+            var result = await userManager.CreateAsync(user, adminDto.Password);
+            if (!result.Succeeded)
+            {
+                return Result<AppUser>.Failure("Failed to create user");
+            }
+            await userManager.AddToRoleAsync(user, "Doctor");
+
+            return Result<AppUser>.Success(user);
+
+        }
+
+        public async Task<Result<AppUser>> AddStudentAsync(AdminDto adminDto)
+        {
+            var user = await userManager.FindByIdAsync(adminDto.NationalId);
+            if (user != null)
+            {
+                return Result<AppUser>.Failure("User found");
+            }
+            user = new AppUser { NationalId = adminDto.NationalId, UserName = adminDto.NationalId, FullName = adminDto.FullName };
+            var result = await userManager.CreateAsync(user, adminDto.Password);
+            if (!result.Succeeded)
+            {
+                return Result<AppUser>.Failure("Failed to create user");
+            }
+            await userManager.AddToRoleAsync(user, "Student");
 
             return Result<AppUser>.Success(user);
         }

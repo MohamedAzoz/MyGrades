@@ -20,15 +20,45 @@ namespace MyGrades.API.Controllers
         }
 
         [HttpPost("AddAdmin")]
-        public async Task<IActionResult> AddAdmin(string name,string nationalId, string Parameter)
+        public async Task<IActionResult> AddAdmin(AdminDto adminDto)
         {
-            var result = await authService.AddAdminAsync(name,nationalId, Parameter);
+            var result = await authService.AddAdminAsync(adminDto);
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
             return Ok(result.Data);
         }
+        [HttpPost("AddAssistant")]
+        public async Task<IActionResult> AddAssistant(AdminDto assistantDto)
+        {
+            var result = await authService.AddAssistantAsync(assistantDto);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok(result.Data);
+        }
+        [HttpPost("AddDoctor")]
+        public async Task<IActionResult> AddDoctor(AdminDto doctorDto)
+        {
+            var result = await authService.AddDoctorAsync(doctorDto);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok(result.Data);
+        }
+        [HttpPost("AddStudent")]
+        public async Task<IActionResult> AddStudent(AdminDto studentDto)
+        {
+            var result = await authService.AddStudentAsync(studentDto);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+            return Ok(result.Data);
+        }   
 
         /// <summary>
         /// Logs in a user.

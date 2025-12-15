@@ -18,7 +18,7 @@ using System.Text;
 
 namespace MyGrades.API
 {
-    public class Program
+    public class Program    
     {
         public static void Main(string[] args)
         {
@@ -69,8 +69,8 @@ namespace MyGrades.API
 
             builder.Services.AddScoped<IEmailService, EmailService>();
 
-            builder.Services.AddScoped<ExcelReader>(); 
-            builder.Services.AddScoped<ExcelWriter>();
+            builder.Services.AddScoped<IExcelReader, ExcelReader>(); 
+            builder.Services.AddScoped<IExcelWriter, ExcelWriter>();
 
             #region AutoMapper
             builder.Services.AddAutoMapper(typeof(Mapping).Assembly);
@@ -94,7 +94,7 @@ namespace MyGrades.API
                 options.AddPolicy("policy", policy =>
                 {
                     policy.WithOrigins(
-                        "https://your-angular-production-domain.com",
+                        "https://mygradesapp.netlify.app",
                         "http://localhost:4200"
                     )
                     .AllowAnyMethod()

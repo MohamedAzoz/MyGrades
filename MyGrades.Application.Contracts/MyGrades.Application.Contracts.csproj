@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Validations\User Validator\AdminDtoValidator.cs" />
     <Compile Include="Validations\User Validator\Assistant\AssistantExcelDtoValidator.cs" />
     <Compile Include="Validations\User Validator\Assistant\AssistantModelValidator.cs" />
     <Compile Include="Validations\User Validator\ChangePasswordDtoValidator.cs" />

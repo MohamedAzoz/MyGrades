@@ -4,7 +4,7 @@ using MyGrades.Application.Contracts.DTOs.User.Student;
 
 namespace MyGrades.Application.Helper
 {
-    public class ExcelWriter
+    public class ExcelWriter : IExcelWriter
     {
         public MemoryStream WriteGradesToStream(List<GradeExcelWriterDto> grades)
         {
@@ -45,11 +45,7 @@ namespace MyGrades.Application.Helper
                 worksheet.Cell("C1").Value = "Tasks";
                 worksheet.Cell("D1").Value = "Practical";
 
-                // --- إضافة الأعمدة المخفية (للنظام) ---
-                // العمود E: National ID (مخفي - قد يساعد في التحقق)
-                //worksheet.Cell("E1").Value = "NationalId (Hidden)";
-                //worksheet.Column("E").Hide();
-
+                // --- إضافة الأعمدة المخفية (للنظام) --- 
                 // العمود F: Student ID (مخفي - هذا هو الـ ID الذي سنعتمد عليه عند الرفع)
                 worksheet.Cell("F1").Value = "StudentId (Hidden)";
                 worksheet.Column("F").Hide();
@@ -59,10 +55,7 @@ namespace MyGrades.Application.Helper
                 foreach (var student in students)
                 {
                     // العمود A: ملء اسم الطالب (للعرض)
-                    worksheet.Cell($"A{currentRow}").Value = student.FullName;
-
-                    //// العمود E: ملء National ID (مخفي)
-                    //worksheet.Cell($"E{currentRow}").Value = student.NationalId;
+                    worksheet.Cell($"A{currentRow}").Value = student.FullName; 
 
                     // العمود F: ملء الـ ID الفعلي للطالب (مخفي - الأهم للقراءة)
                     // 🚨 سنفترض أن UserExcelWriterDto به خاصية Id

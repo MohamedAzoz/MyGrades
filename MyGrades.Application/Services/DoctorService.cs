@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using MyGrades.Application.Contracts.Const;
 using MyGrades.Application.Contracts;
-using MyGrades.Application.Contracts.Repositories;
-using MyGrades.Application.Contracts.Services;
-using MyGrades.Domain.Entities;
-using MyGrades.Application.Helper;
 using MyGrades.Application.Contracts.DTOs.User.Doctor;
 using MyGrades.Application.Contracts.Projections_Models.User.Doctor;
-using MyGrades.Application.Contracts.DTOs.Subject;
+using MyGrades.Application.Contracts.Repositories;
+using MyGrades.Application.Contracts.Services;
+using MyGrades.Application.Helper;
+using MyGrades.Domain.Entities;
 
 namespace MyGrades.Application.Services
 {
@@ -16,10 +16,10 @@ namespace MyGrades.Application.Services
         private readonly IUnitOfWork _unitOfWork; // Standard naming convention with underscore
         private readonly IMapper mapper;
         private readonly UserManager<AppUser> _userManager;
-        private readonly ExcelReader _excelReader;
+        private readonly IExcelReader _excelReader;
 
         public DoctorService(IUnitOfWork unitOfWork, IMapper _mapper
-            , UserManager<AppUser> userManager, ExcelReader excelReader)
+            , UserManager<AppUser> userManager, IExcelReader excelReader)
         {
             _unitOfWork = unitOfWork; // Fixed naming
             mapper = _mapper;
@@ -115,7 +115,7 @@ namespace MyGrades.Application.Services
                     }
 
                     // إضافة دور "Doctor" للمستخدم (خطوة مهمة جداً نسيته)
-                    await _userManager.AddToRoleAsync(newUser, "Doctor");
+                    await _userManager.AddToRoleAsync(newUser, UserRoles.Doctor);
 
                     // إنشاء بروفايل الطبيب
                     var newDoctorProfile = new Doctor

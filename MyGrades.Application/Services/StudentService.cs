@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using MyGrades.Application.Contracts.Const;
 using MyGrades.Application.Contracts;
+using MyGrades.Application.Contracts.DTOs.Subject;
 using MyGrades.Application.Contracts.DTOs.User.Student;
 using MyGrades.Application.Contracts.Repositories;
 using MyGrades.Application.Contracts.Services;
-using MyGrades.Domain.Entities;
 using MyGrades.Application.Helper;
+using MyGrades.Domain.Entities;
 using System.Linq.Expressions;
-using MyGrades.Application.Contracts.DTOs.Subject;
 
 namespace MyGrades.Application.Services
 {
@@ -16,15 +17,17 @@ namespace MyGrades.Application.Services
         private readonly IUnitOfWork _unitOfWork; // Standard naming convention with underscore
         private readonly IMapper mapper;
         private readonly UserManager<AppUser> _userManager;
-        private readonly ExcelReader _excelReader;
+        private readonly IExcelReader _excelReader;
+        private readonly IExcelWriter excelWriter;
 
         public StudentService(IUnitOfWork unitOfWork,IMapper _mapper
-            , UserManager<AppUser> userManager, ExcelReader excelReader)
+            , UserManager<AppUser> userManager, IExcelReader excelReader,IExcelWriter _excelWriter)
         {
             _unitOfWork = unitOfWork; // Fixed naming
             mapper = _mapper;
             _userManager = userManager;
             _excelReader = excelReader;
+            excelWriter = _excelWriter;
         }
 
         public async Task<Result<bool>> ImportStudentsFromExcel(Stream fileStream
@@ -75,7 +78,7 @@ namespace MyGrades.Application.Services
                     }
 
                     // إضافة دور "Student" للمستخدم (خطوة مهمة جداً نسيته)
-                    await _userManager.AddToRoleAsync(newUser, "Student");
+                    await _userManager.AddToRoleAsync(newUser, UserRoles.Student);
 
                     // إنشاء بروفايل الطالب
                     var newStudentProfile = new Student
@@ -221,8 +224,6 @@ namespace MyGrades.Application.Services
                                 ,x=>x.User);
             if (!students.IsSuccess || students.Data == null)
                 return Result<Stream>.Failure("No students found");
-
-            var excelWriter = new ExcelWriter();
 
             var studentsList = mapper.Map<List<UserExcelDto>>(students.Data.ToList());
             var stream = excelWriter.WriteStudentsTemplateToStream(studentsList);

@@ -10,8 +10,7 @@ using System.Collections.Generic;
 
 namespace MyGrades.Application.Helper
 {
-
-    public class ExcelReader
+    public class ExcelReader : IExcelReader
     {
         public Result<List<UserExcelDto>> ReadUsersFromStream(Stream stream)
         {

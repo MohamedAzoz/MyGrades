@@ -12,8 +12,8 @@ using MyGrades.Infrastructure;
 namespace MyGrades.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251208061219_update")]
-    partial class update
+    [Migration("20251214153833_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
